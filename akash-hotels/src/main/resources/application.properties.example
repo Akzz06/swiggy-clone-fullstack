@@ -1,0 +1,13 @@
+# ==============================================================================
+# Example Configuration Template for Akash Hotels Backend
+# Copy this file to application-local.properties for local development
+# ==============================================================================
+
+# Database credentials
+spring.datasource.url=jdbc:postgresql://localhost:5432/akash_hotels
+spring.datasource.username=your_postgres_username
+spring.datasource.password=your_postgres_password
+
+# 256-bit Base64-encoded secret key for signing JWTs
+jwt.secret=YOUR_BASE64_ENCODED_HMAC_SHA256_SECRET_KEY_MIN_32_BYTES
+jwt.expiration-ms=86400000

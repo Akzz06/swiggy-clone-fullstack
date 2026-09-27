@@ -1,0 +1,87 @@
+<section class="login-page">
+  <div class="login-left">
+    <div class="login-left-content">
+      <div class="login-hero-logo">
+        <span>🍛</span>
+        <span>Akash Hotels</span>
+      </div>
+      <h1>Delicious food,<br/>delivered fast</h1>
+      <p>Order from our kitchen in Guindy and get fresh food delivered right to your door.</p>
+      <div class="login-features">
+        <div class="feature-item"><span>⚡</span> Fast delivery</div>
+        <div class="feature-item"><span>🔥</span> Hot & fresh</div>
+        <div class="feature-item"><span>🛡️</span> Secure payments</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-form-wrap">
+      <h2>Welcome back</h2>
+      <p class="login-sub">Log in to your Akash Hotels account</p>
+
+      @if (errorMsg()) {
+        <div class="alert-error">{{ errorMsg() }}</div>
+      }
+
+      <form (ngSubmit)="onSubmit()" #f="ngForm" novalidate>
+        <div class="form-group">
+          <label>Email address</label>
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="form.email"
+            required
+            email
+            placeholder="you@example.com"
+            [class.error]="f.submitted && !f.controls['email']?.valid"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="password-wrap">
+            <input
+              [type]="showPwd() ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="form.password"
+              required
+              minlength="6"
+              placeholder="Your password"
+              [class.error]="f.submitted && !f.controls['password']?.valid"
+            />
+            <button type="button" class="pwd-toggle" (click)="showPwd.update(v=>!v)">
+              {{ showPwd() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary login-submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner spinner-sm"></span>
+          } @else {
+            Log in
+          }
+        </button>
+      </form>
+
+      <div class="login-divider">
+        <span>New to Akash Hotels?</span>
+      </div>
+
+      <a routerLink="/register" class="btn-secondary" style="width:100%; text-align:center; display:block; padding:11px;">
+        Create account
+      </a>
+
+      <!-- Quick login hint -->
+      <div class="quick-hint">
+        <p>🔑 <strong>Demo accounts:</strong></p>
+        <div class="hint-pills">
+          <button class="hint-pill" (click)="fillDemo('customer')">Customer</button>
+          <button class="hint-pill" (click)="fillDemo('admin')">Admin</button>
+          <button class="hint-pill" (click)="fillDemo('partner')">Partner</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

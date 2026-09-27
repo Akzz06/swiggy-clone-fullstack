@@ -1,0 +1,155 @@
+<div class="delivery-page">
+
+  @if (loading()) {
+    <div class="loading-center"><div class="spinner"></div></div>
+  } @else if (!profile()) {
+    <div class="container empty-state">
+      <div class="empty-state-icon">🛵</div>
+      <h3>No delivery profile found</h3>
+      <p>Contact admin to set up your delivery partner profile.</p>
+    </div>
+  } @else {
+    <!-- Profile Header -->
+    <div class="delivery-header">
+      <div class="container">
+        <div class="profile-row">
+          <div class="partner-avatar-lg">{{ profile()!.name.charAt(0) }}</div>
+          <div class="profile-info">
+            <h1>{{ profile()!.name }}</h1>
+            <p>{{ profile()!.email }} &nbsp;·&nbsp; {{ profile()!.phone }}</p>
+            <p>🏍️ {{ profile()!.vehicleType }} · {{ profile()!.vehicleNumber }}</p>
+          </div>
+          <div class="profile-actions">
+            <span class="availability-pill avail-{{ profile()!.availabilityStatus.toLowerCase() }}">
+              {{ profile()!.availabilityStatus }}
+            </span>
+            <button
+              class="btn-primary toggle-btn"
+              [disabled]="updatingAvailability()"
+              (click)="toggleAvailability()"
+            >
+              @if (updatingAvailability()) { <span class="spinner spinner-sm"></span> }
+              @else if (profile()!.availabilityStatus === 'AVAILABLE') { Go Offline }
+              @else { Go Online }
+            </button>
+          </div>
+        </div>
+        @if (earnings()) {
+          <div class="earnings-strip">
+            <div class="earn-chip"><strong>{{ earnings()!.completedDeliveries }}</strong><span>Completed</span></div>
+            <div class="earn-chip"><strong>{{ fmt(earnings()!.totalBaseEarning) }}</strong><span>Base</span></div>
+            <div class="earn-chip"><strong>{{ fmt(earnings()!.totalBonusEarning) }}</strong><span>Bonus</span></div>
+            <div class="earn-chip total"><strong>{{ fmt(earnings()!.totalEarning) }}</strong><span>Total Earned</span></div>
+          </div>
+        }
+        <div class="delivery-tabs">
+          <button class="delivery-tab" [class.active]="activeTab()==='deliveries'" (click)="activeTab.set('deliveries')">📦 Deliveries</button>
+          <button class="delivery-tab" [class.active]="activeTab()==='earnings'" (click)="activeTab.set('earnings')">💰 Earnings</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container delivery-body">
+
+      <!-- ===== DELIVERIES TAB ===== -->
+      @if (activeTab() === 'deliveries') {
+
+        <!-- Active -->
+        @if (activeDeliveries().length > 0) {
+          <h2 class="sub-title">Active Deliveries</h2>
+          @for (d of activeDeliveries(); track d.id) {
+            <div class="delivery-card active-card">
+              <div class="delivery-card-header">
+                <div>
+                  <span class="delivery-id">Delivery #{{ d.id }}</span>
+                  <span class="delivery-order">· Order #{{ d.orderId }}</span>
+                </div>
+                <span class="delivery-status-pill status-{{ d.deliveryStatus.toLowerCase() }}">
+                  {{ statusLabel(d.deliveryStatus) }}
+                </span>
+              </div>
+              <div class="delivery-card-body">
+                <div class="delivery-detail"><span>📍 Distance</span><strong>{{ d.distanceKm }} km</strong></div>
+                <div class="delivery-detail"><span>⏰ Assigned</span><strong>{{ formatDate(d.pickupTime) }}</strong></div>
+              </div>
+              <div class="delivery-card-actions">
+                @if (d.deliveryStatus === 'ASSIGNED') {
+                  <button class="btn-primary" [disabled]="actionDeliveryId()===d.id" (click)="accept(d)">
+                    @if (actionDeliveryId()===d.id) { <span class="spinner spinner-sm"></span> } @else { ✅ Accept }
+                  </button>
+                }
+                @if (d.deliveryStatus === 'ACCEPTED') {
+                  <button class="btn-primary" [disabled]="actionDeliveryId()===d.id" (click)="pickup(d)">
+                    @if (actionDeliveryId()===d.id) { <span class="spinner spinner-sm"></span> } @else { 📦 Picked Up }
+                  </button>
+                }
+                @if (d.deliveryStatus === 'PICKED_UP' || d.deliveryStatus === 'DELIVERING') {
+                  <button class="btn-primary success-btn" [disabled]="actionDeliveryId()===d.id" (click)="complete(d)">
+                    @if (actionDeliveryId()===d.id) { <span class="spinner spinner-sm"></span> } @else { 🎉 Mark Delivered }
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Completed -->
+        <h2 class="sub-title">Completed Deliveries <span class="count-badge">{{ completedDeliveries().length }}</span></h2>
+        @if (completedDeliveries().length === 0) {
+          <p class="text-muted-msg">No completed deliveries yet.</p>
+        } @else {
+          <div class="completed-list">
+            @for (d of completedDeliveries(); track d.id) {
+              <div class="delivery-row">
+                <div class="delivery-row-left">
+                  <span class="delivery-id-sm">#{{ d.id }}</span>
+                  <span class="delivery-dist">📍 {{ d.distanceKm }} km</span>
+                  <span class="delivery-time">🕐 {{ formatDate(d.deliveredTime) }}</span>
+                </div>
+                <div class="delivery-row-right">
+                  <span class="earn-base">Base {{ fmt(d.baseEarning) }}</span>
+                  <span class="earn-bonus">+ Bonus {{ fmt(d.bonusAmount) }}</span>
+                  <span class="earn-total">= {{ fmt(d.totalEarning) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- ===== EARNINGS TAB ===== -->
+      @if (activeTab() === 'earnings' && earnings()) {
+        <div class="earnings-summary">
+          <div class="earn-summary-card">
+            <div class="earn-big">{{ fmt(earnings()!.totalEarning) }}</div>
+            <p>Total Lifetime Earnings</p>
+          </div>
+          <div class="earn-breakdown">
+            <div class="earn-row"><span>Base earnings</span><strong>{{ fmt(earnings()!.totalBaseEarning) }}</strong></div>
+            <div class="earn-row"><span>Bonus earnings</span><strong>{{ fmt(earnings()!.totalBonusEarning) }}</strong></div>
+            <div class="earn-row"><span>Deliveries completed</span><strong>{{ earnings()!.completedDeliveries }}</strong></div>
+          </div>
+        </div>
+
+        <h2 class="sub-title">Delivery History</h2>
+        <div class="completed-list">
+          @for (d of earnings()!.deliveries; track d.id) {
+            @if (d.deliveryStatus === 'DELIVERED') {
+              <div class="delivery-row">
+                <div class="delivery-row-left">
+                  <span class="delivery-id-sm">#{{ d.id }}</span>
+                  <span class="delivery-dist">{{ d.distanceKm }} km</span>
+                </div>
+                <div class="delivery-row-right">
+                  <span>{{ fmt(d.baseEarning) }} + {{ fmt(d.bonusAmount) }}</span>
+                  <span class="earn-total">{{ fmt(d.totalEarning) }}</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
+    </div>
+  }
+</div>

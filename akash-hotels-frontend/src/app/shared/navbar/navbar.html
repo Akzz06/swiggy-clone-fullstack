@@ -1,0 +1,85 @@
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <!-- Logo -->
+    <a routerLink="/" class="navbar-logo">
+      <span class="logo-icon">🍛</span>
+      <div class="logo-text">
+        <span class="logo-name">Akash Hotels</span>
+        <span class="logo-tag">Order Food Online</span>
+      </div>
+    </a>
+
+    <!-- Location pill -->
+    <div class="navbar-location">
+      <span class="location-pin">📍</span>
+      <span class="location-text">Guindy, Chennai</span>
+      <span class="location-arrow">▾</span>
+    </div>
+
+    <!-- Search -->
+    <div class="navbar-search">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        placeholder="Search for dishes..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()"
+        class="search-input"
+      />
+    </div>
+
+    <!-- Right actions -->
+    <div class="navbar-actions">
+      @if (auth.isLoggedIn()) {
+        <!-- Cart -->
+        <a routerLink="/cart" class="nav-btn cart-btn">
+          <span class="cart-icon">🛒</span>
+          <span class="nav-btn-label">Cart</span>
+          @if (cartService.itemCount() > 0) {
+            <span class="cart-badge">{{ cartService.itemCount() }}</span>
+          }
+        </a>
+
+        <!-- User menu -->
+        <div class="user-menu" (click)="toggleUserMenu()" #userMenuRef>
+          <div class="user-avatar">{{ userInitial() }}</div>
+          <span class="nav-btn-label">{{ userFirstName() }}</span>
+          <span class="dropdown-arrow">▾</span>
+
+          @if (showUserMenu()) {
+            <div class="dropdown">
+              @if (auth.isCustomer()) {
+                <a routerLink="/orders" class="dropdown-item" (click)="showUserMenu.set(false)">
+                  📦 My Orders
+                </a>
+              }
+              @if (auth.isAdmin()) {
+                <a routerLink="/admin" class="dropdown-item" (click)="showUserMenu.set(false)">
+                  ⚙️ Admin Panel
+                </a>
+              }
+              @if (auth.isDeliveryPartner()) {
+                <a routerLink="/delivery" class="dropdown-item" (click)="showUserMenu.set(false)">
+                  🛵 Deliveries
+                </a>
+              }
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item dropdown-logout" (click)="logout()">
+                🚪 Logout
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="nav-btn">
+          <span>Login</span>
+        </a>
+        <a routerLink="/register" class="btn-primary" style="font-size:0.8125rem; padding:9px 18px;">
+          Sign Up
+        </a>
+      }
+    </div>
+  </div>
+</nav>
+
+<!-- Search overlay results are handled by the home page -->

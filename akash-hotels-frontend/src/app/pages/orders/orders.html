@@ -1,0 +1,87 @@
+<div class="container orders-page">
+  <h1 class="page-title">My Orders</h1>
+
+  @if (loading()) {
+    <div class="loading-center"><div class="spinner"></div></div>
+  } @else if (orders().length === 0) {
+    <div class="empty-state">
+      <div class="empty-state-icon">📦</div>
+      <h3>No orders yet</h3>
+      <p>You haven't placed any orders. Start ordering!</p>
+      <a routerLink="/" class="btn-primary">Browse Menu</a>
+    </div>
+  } @else {
+    <div class="orders-list">
+      @for (order of orders(); track order.id) {
+        <div class="order-card" [class.cancelled]="order.orderStatus === 'CANCELLED'">
+
+          <!-- Order header -->
+          <div class="order-header">
+            <div class="order-meta">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-date">{{ formatDate(order.placedAt) }}</span>
+            </div>
+            <div class="order-header-right">
+              <span class="status status-{{ order.orderStatus.toLowerCase() }}">
+                {{ statusIcon(order.orderStatus) }} {{ statusLabel(order.orderStatus) }}
+              </span>
+              @if (canCancel(order)) {
+                <button
+                  class="btn-ghost cancel-btn"
+                  [disabled]="cancellingId() === order.id"
+                  (click)="cancelOrder(order.id)"
+                >
+                  @if (cancellingId() === order.id) {
+                    <span class="spinner spinner-sm"></span>
+                  } @else {
+                    Cancel
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Status timeline -->
+          @if (order.orderStatus !== 'CANCELLED') {
+            <div class="status-timeline">
+              @for (step of statusSteps; track step; let i = $index) {
+                <div class="timeline-step" [class.done]="stepIndex(order.orderStatus) >= i" [class.active]="stepIndex(order.orderStatus) === i">
+                  <div class="timeline-dot"></div>
+                  @if (i < statusSteps.length - 1) {
+                    <div class="timeline-line"></div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Items -->
+          <div class="order-items">
+            @for (item of order.items; track item.id) {
+              <div class="order-item-row">
+                <span class="item-qty">{{ item.quantity }}×</span>
+                <span class="item-name">{{ item.dishName }}</span>
+                <span class="item-price">{{ fmt(item.subtotal) }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Footer -->
+          <div class="order-footer">
+            <div class="order-location">
+              📍 {{ order.deliveryLocationName }}
+              @if (order.deliveryPartnerName) {
+                &nbsp;·&nbsp; 🛵 {{ order.deliveryPartnerName }}
+              }
+            </div>
+            <div class="order-amounts">
+              <span class="order-subtotal">Subtotal {{ fmt(order.subtotal) }}</span>
+              <span class="order-delivery">+ Delivery {{ fmt(order.deliveryFee) }}</span>
+              <span class="order-total">= {{ fmt(order.totalAmount) }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

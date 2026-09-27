@@ -1,0 +1,108 @@
+<!-- Hero Banner -->
+<section class="hero-banner">
+  <div class="container">
+    <div class="hero-content">
+      <h1>Authentic South Indian Food,<br/><span>Delivered Fresh</span></h1>
+      <p>From Guindy's most loved kitchen — order Biryani, Dosa, Curries and more</p>
+      <div class="hero-search">
+        <span class="hero-search-icon">🔍</span>
+        <input type="text" placeholder="Search for Biryani, Dosa, Coffee..." [(ngModel)]="searchQuery" class="hero-search-input" />
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><strong>10+</strong><span>Dishes</span></div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat"><strong>30 min</strong><span>Avg delivery</span></div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat"><strong>15+</strong><span>Locations</span></div>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80" alt="Biryani" />
+    </div>
+  </div>
+</section>
+
+<!-- Category Filter -->
+<section class="category-section">
+  <div class="container">
+    <div class="category-scroll">
+      @for (cat of categories(); track cat) {
+        <button
+          class="category-chip"
+          [class.active]="selectedCategory() === cat"
+          (click)="selectedCategory.set(cat)"
+        >
+          <span class="cat-icon">{{ categoryIcon(cat) }}</span>
+          {{ cat }}
+        </button>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Dish Grid -->
+<section class="dishes-section">
+  <div class="container">
+    @if (loading()) {
+      <div class="loading-center">
+        <div class="spinner"></div>
+      </div>
+    } @else if (filteredDishes().length === 0) {
+      <div class="empty-state">
+        <div class="empty-state-icon">🍽️</div>
+        <h3>No dishes found</h3>
+        <p>Try a different search or category</p>
+        <button class="btn-secondary" (click)="selectedCategory.set('All'); searchQuery.set('')">View all dishes</button>
+      </div>
+    } @else {
+      <div class="section-header">
+        <h2>{{ selectedCategory() === 'All' ? 'Our Menu' : selectedCategory() }}</h2>
+        <span class="dish-count">{{ filteredDishes().length }} items</span>
+      </div>
+      <div class="dishes-grid">
+        @for (dish of filteredDishes(); track dish.id) {
+          <div class="dish-card">
+            <div class="dish-image-wrap">
+              <img [src]="dish.imageUrl + '?w=400&q=80'" [alt]="dish.name" class="dish-image" loading="lazy" />
+              @if (!dish.available) {
+                <div class="dish-unavailable">Unavailable</div>
+              }
+              <div class="dish-category-tag">{{ dish.category }}</div>
+            </div>
+            <div class="dish-info">
+              <div class="dish-header">
+                <div class="veg-dot"></div>
+                <h3 class="dish-name">{{ dish.name }}</h3>
+              </div>
+              <p class="dish-desc">{{ dish.description }}</p>
+              <div class="dish-footer">
+                <span class="dish-price">{{ formatPrice(dish.price) }}</span>
+                @if (dish.available) {
+                  @if (getItemInCart(dish.id) > 0) {
+                    <div class="qty-control">
+                      <button class="qty-btn" [disabled]="addingDishId() === dish.id" (click)="removeFromCart(dish)">−</button>
+                      <span class="qty-value">{{ getItemInCart(dish.id) }}</span>
+                      <button class="qty-btn" [disabled]="addingDishId() === dish.id" (click)="addToCart(dish)">+</button>
+                    </div>
+                  } @else {
+                    <button
+                      class="add-btn"
+                      [disabled]="addingDishId() === dish.id"
+                      (click)="addToCart(dish)"
+                    >
+                      @if (addingDishId() === dish.id) {
+                        <span class="spinner spinner-sm"></span>
+                      } @else {
+                        ADD
+                      }
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

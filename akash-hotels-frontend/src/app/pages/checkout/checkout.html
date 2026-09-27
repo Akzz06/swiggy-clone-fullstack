@@ -1,0 +1,88 @@
+<div class="container checkout-page">
+  <h1 class="page-title">Checkout</h1>
+  <div class="checkout-layout">
+    <!-- Left -->
+    <div class="checkout-main">
+      <!-- Delivery Location -->
+      <div class="checkout-section">
+        <h2 class="section-title"><span>📍</span> Delivery Location</h2>
+        @if (loadingLocations()) {
+          <div class="loading-center" style="padding: 20px"><div class="spinner"></div></div>
+        } @else {
+          <div class="location-grid">
+            @for (loc of locations(); track loc.id) {
+              <button
+                class="location-card"
+                [class.selected]="selectedLocationId() === loc.id"
+                (click)="selectedLocationId.set(loc.id)"
+              >
+                <strong>{{ loc.name }}</strong>
+                <span>{{ loc.distanceFromHotelKm }} km from restaurant</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Payment Method -->
+      <div class="checkout-section">
+        <h2 class="section-title"><span>💳</span> Payment Method</h2>
+        <div class="payment-options">
+          @for (method of paymentMethods; track method.value) {
+            <label class="payment-option" [class.selected]="paymentMethod() === method.value">
+              <input type="radio" [value]="method.value" [(ngModel)]="paymentMethod" (change)="paymentMethod.set(method.value)" hidden />
+              <span class="payment-icon">{{ method.icon }}</span>
+              <span class="payment-label">{{ method.label }}</span>
+              @if (paymentMethod() === method.value) {
+                <span class="payment-check">✓</span>
+              }
+            </label>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="checkout-summary">
+      <div class="summary-card">
+        <h3>Order Summary</h3>
+        @if (cart()) {
+          @for (item of cart()!.items; track item.id) {
+            <div class="order-item-row">
+              <span>{{ item.dishName }} × {{ item.quantity }}</span>
+              <span>₹{{ item.itemTotal.toFixed(0) }}</span>
+            </div>
+          }
+        }
+        <div class="divider"></div>
+        <div class="summary-row">
+          <span>Item total</span>
+          <span>₹{{ subtotal().toFixed(0) }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery fee</span>
+          <span>₹{{ deliveryFeePreview() }}</span>
+        </div>
+        <div class="divider"></div>
+        <div class="summary-row summary-total">
+          <strong>Total</strong>
+          <strong>₹{{ (subtotal() + deliveryFeePreview()).toFixed(0) }}</strong>
+        </div>
+        @if (selectedLocation()) {
+          <div class="delivery-to">
+            <span>📍</span>
+            <span>Delivering to <strong>{{ selectedLocation()!.name }}</strong></span>
+          </div>
+        }
+        <button
+          class="btn-primary place-order-btn"
+          [disabled]="loading() || !selectedLocationId()"
+          (click)="placeOrder()"
+        >
+          @if (loading()) { <span class="spinner spinner-sm"></span>&nbsp; Placing... } @else { Place Order }
+        </button>
+        <a routerLink="/cart" class="back-link">← Back to cart</a>
+      </div>
+    </div>
+  </div>
+</div>

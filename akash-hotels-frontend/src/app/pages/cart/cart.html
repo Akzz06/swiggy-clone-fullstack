@@ -1,0 +1,73 @@
+<div class="container cart-page">
+  <h1 class="page-title">Your Cart</h1>
+
+  @if (loading()) {
+    <div class="loading-center"><div class="spinner"></div></div>
+  } @else if (items().length === 0) {
+    <div class="empty-state">
+      <div class="empty-state-icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Add some delicious dishes from our menu</p>
+      <a routerLink="/" class="btn-primary">Browse Menu</a>
+    </div>
+  } @else {
+    <div class="cart-layout">
+      <!-- Items -->
+      <div class="cart-items">
+        <div class="cart-hotel-header">
+          <span>🍛</span>
+          <div>
+            <strong>Akash Hotels</strong>
+            <span>Guindy, Chennai</span>
+          </div>
+        </div>
+        @for (item of items(); track item.id) {
+          <div class="cart-item" [class.updating]="updatingId() === item.id">
+            <img [src]="item.dishImageUrl + '?w=120&q=75'" [alt]="item.dishName" class="cart-item-img" />
+            <div class="cart-item-info">
+              <div class="veg-dot"></div>
+              <div>
+                <h4>{{ item.dishName }}</h4>
+                <span class="item-unit-price">{{ fmt(item.dishPrice) }} each</span>
+              </div>
+            </div>
+            <div class="qty-control">
+              <button class="qty-btn" (click)="updateQty(item, -1)">−</button>
+              <span class="qty-value">{{ item.quantity }}</span>
+              <button class="qty-btn" (click)="updateQty(item, 1)">+</button>
+            </div>
+            <span class="item-total">{{ fmt(item.itemTotal) }}</span>
+            <button class="remove-btn" (click)="remove(item)" title="Remove">✕</button>
+          </div>
+        }
+      </div>
+
+      <!-- Summary -->
+      <div class="cart-summary">
+        <div class="summary-card">
+          <h3>Order Summary</h3>
+          <div class="summary-row">
+            <span>Item total</span>
+            <span>{{ fmt(subtotal()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Delivery fee</span>
+            <span class="text-gray">Calculated at checkout</span>
+          </div>
+          <div class="divider"></div>
+          <div class="summary-row summary-total">
+            <span>Subtotal</span>
+            <strong>{{ fmt(subtotal()) }}</strong>
+          </div>
+          <a routerLink="/checkout" class="btn-primary checkout-btn">Proceed to Checkout →</a>
+          <a routerLink="/" class="continue-link">← Continue Shopping</a>
+        </div>
+
+        <div class="offers-card">
+          <div class="offer-item">🎉 <span>Free delivery on first order!</span></div>
+          <div class="offer-item">🔥 <span>Fresh food guaranteed</span></div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,216 @@
+<div class="admin-page">
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="container">
+      <div class="admin-header-inner">
+        <div>
+          <h1>Admin Panel</h1>
+          <p>Akash Hotels Management</p>
+        </div>
+        <div class="stats-row">
+          <div class="stat-chip"><strong>{{ totalOrders() }}</strong><span>Orders</span></div>
+          <div class="stat-chip active"><strong>{{ activeOrders() }}</strong><span>Active</span></div>
+          <div class="stat-chip revenue"><strong>{{ fmt(revenue()) }}</strong><span>Revenue</span></div>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab" [class.active]="activeTab()==='orders'" (click)="activeTab.set('orders')">📋 Orders</button>
+        <button class="admin-tab" [class.active]="activeTab()==='dishes'" (click)="activeTab.set('dishes')">🍽️ Dishes</button>
+        <button class="admin-tab" [class.active]="activeTab()==='partners'" (click)="activeTab.set('partners')">🛵 Partners</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container admin-body">
+
+    <!-- ===== ORDERS TAB ===== -->
+    @if (activeTab() === 'orders') {
+      @if (ordersLoading()) {
+        <div class="loading-center"><div class="spinner"></div></div>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Location</th>
+                <th>Amount</th>
+                <th>Placed</th>
+                <th>Status</th>
+                <th>Assign Partner</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of orders(); track order.id) {
+                <tr [class.delivered-row]="order.orderStatus==='DELIVERED'" [class.cancelled-row]="order.orderStatus==='CANCELLED'">
+                  <td><strong>#{{ order.id }}</strong></td>
+                  <td>{{ order.customerName }}</td>
+                  <td class="items-cell">
+                    @for (item of order.items; track item.id) {
+                      <div class="item-line">{{ item.quantity }}× {{ item.dishName }}</div>
+                    }
+                  </td>
+                  <td>{{ order.deliveryLocationName }}</td>
+                  <td><strong>{{ fmt(order.totalAmount) }}</strong></td>
+                  <td class="date-cell">{{ formatDate(order.placedAt) }}</td>
+                  <td>
+                    <span class="status status-{{ order.orderStatus.toLowerCase() }}">{{ statusLabel(order.orderStatus) }}</span>
+                  </td>
+                  <td>
+                    @if (!['DELIVERED','CANCELLED','ASSIGNED','OUT_FOR_DELIVERY'].includes(order.orderStatus)) {
+                      <div class="assign-row">
+                        <select class="assign-select" (change)="setAssignPartner(order.id, +($any($event).target.value))">
+                          <option value="">Select partner</option>
+                          @for (p of availablePartners(); track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                        <button class="btn-primary assign-btn" [disabled]="updatingOrderId()===order.id" (click)="assignPartner(order)">
+                          Assign
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="text-muted">{{ order.deliveryPartnerName || '—' }}</span>
+                    }
+                  </td>
+                  <td>
+                    @if (!['DELIVERED','CANCELLED'].includes(order.orderStatus)) {
+                      <select class="status-select" [value]="order.orderStatus" (change)="updateStatus(order, $any($event).target.value)" [disabled]="updatingOrderId()===order.id">
+                        @for (s of orderStatuses; track s) {
+                          <option [value]="s">{{ statusLabel(s) }}</option>
+                        }
+                      </select>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+
+    <!-- ===== DISHES TAB ===== -->
+    @if (activeTab() === 'dishes') {
+      <div class="section-toolbar">
+        <h2>Menu Dishes</h2>
+        <button class="btn-primary" (click)="openNewDish()">+ Add Dish</button>
+      </div>
+      @if (dishesLoading()) {
+        <div class="loading-center"><div class="spinner"></div></div>
+      } @else {
+        <div class="dishes-admin-grid">
+          @for (dish of dishes(); track dish.id) {
+            <div class="dish-admin-card" [class.unavailable]="!dish.available">
+              <img [src]="dish.imageUrl + '?w=300&q=75'" [alt]="dish.name" class="dish-admin-img" loading="lazy" />
+              <div class="dish-admin-info">
+                <div class="dish-admin-top">
+                  <h4>{{ dish.name }}</h4>
+                  <span class="dish-admin-cat">{{ dish.category }}</span>
+                </div>
+                <p class="dish-admin-desc">{{ dish.description }}</p>
+                <div class="dish-admin-footer">
+                  <strong class="dish-price">₹{{ dish.price }}</strong>
+                  <span class="dish-status-pill" [class.avail]="dish.available">
+                    {{ dish.available ? 'Available' : 'Unavailable' }}
+                  </span>
+                  <div class="dish-actions">
+                    <button class="btn-ghost" (click)="openEditDish(dish)">✏️ Edit</button>
+                    <button class="btn-ghost danger-btn" (click)="deleteDish(dish)">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ===== PARTNERS TAB ===== -->
+    @if (activeTab() === 'partners') {
+      <div class="section-toolbar"><h2>Delivery Partners</h2></div>
+      @if (partnersLoading()) {
+        <div class="loading-center"><div class="spinner"></div></div>
+      } @else {
+        <div class="partners-grid">
+          @for (p of partners(); track p.id) {
+            <div class="partner-card">
+              <div class="partner-avatar">{{ p.name.charAt(0) }}</div>
+              <div class="partner-info">
+                <h4>{{ p.name }}</h4>
+                <p>{{ p.email }}</p>
+                <p>📞 {{ p.phone }}</p>
+                <p>🏍️ {{ p.vehicleType }} · {{ p.vehicleNumber }}</p>
+              </div>
+              <div class="partner-status-col">
+                <span class="availability-pill avail-{{ p.availabilityStatus.toLowerCase() }}">
+                  {{ p.availabilityStatus }}
+                </span>
+                <span class="partner-active-pill" [class.active]="p.active">
+                  {{ p.active ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Dish Modal -->
+@if (showDishModal()) {
+  <div class="modal-overlay" (click)="showDishModal.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingDish() ? 'Edit Dish' : 'Add New Dish' }}</h2>
+        <button class="modal-close" (click)="showDishModal.set(false)">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: 1/-1">
+            <label>Dish Name</label>
+            <input type="text" [value]="dishForm().name" (input)="updateDishForm('name', $any($event).target.value)" placeholder="e.g. Chicken Biryani" />
+          </div>
+          <div class="form-group" style="grid-column: 1/-1">
+            <label>Description</label>
+            <textarea rows="2" [value]="dishForm().description" (input)="updateDishForm('description', $any($event).target.value)" placeholder="Brief description..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" min="1" [value]="dishForm().price" (input)="updateDishForm('price', +$any($event).target.value)" />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select [value]="dishForm().category" (change)="updateDishForm('category', $any($event).target.value)">
+              <option value="">Select category</option>
+              @for (cat of ['Biryani','Tiffin','Starters','Curry','Meals','Beverages','Breads']; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: 1/-1">
+            <label>Image URL</label>
+            <input type="url" [value]="dishForm().imageUrl" (input)="updateDishForm('imageUrl', $any($event).target.value)" placeholder="https://images.unsplash.com/..." />
+          </div>
+          <div class="form-group" style="grid-column: 1/-1">
+            <label class="toggle-label">
+              <input type="checkbox" [checked]="dishForm().available" (change)="updateDishForm('available', $any($event).target.checked)" />
+              Available for ordering
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="showDishModal.set(false)">Cancel</button>
+        <button class="btn-primary" [disabled]="savingDish()" (click)="saveDish()">
+          @if (savingDish()) { <span class="spinner spinner-sm"></span> } @else { Save Dish }
+        </button>
+      </div>
+    </div>
+  </div>
+}
