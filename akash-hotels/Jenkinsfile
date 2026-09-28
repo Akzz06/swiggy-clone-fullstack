@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Test Docker') {
             steps {
                 sh 'docker --version'
@@ -18,13 +12,18 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                dir('akash-hotels') {
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean package -DskipTests'
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t akash-hotels:jenkins .'
+                dir('akash-hotels') {
+                    sh 'docker build -t akash-hotels:jenkins .'
+                }
             }
         }
     }
