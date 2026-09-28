@@ -7,6 +7,7 @@ pipeline {
             steps {
                 sh 'docker --version'
                 sh 'docker ps'
+                sh 'docker-compose version'
             }
         }
 
@@ -23,6 +24,17 @@ pipeline {
             steps {
                 dir('akash-hotels') {
                     sh 'docker build -t akash-hotels:jenkins .'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                dir('akash-hotels') {
+                    sh '''
+                        docker-compose down
+                        docker-compose up -d --build
+                    '''
                 }
             }
         }
