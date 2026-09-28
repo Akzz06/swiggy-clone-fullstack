@@ -1,0 +1,17 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
