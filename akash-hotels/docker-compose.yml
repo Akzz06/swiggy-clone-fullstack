@@ -12,10 +12,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   app:
-    image: akash-hotels:jenkins
+    image: akash-hotels:1.0
     container_name: akash-hotels-app
     ports:
       - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/akash_hotels
+      DB_USERNAME: akash_hotels_user
+      DB_PASSWORD: Akash@123
     depends_on:
       - postgres
 
