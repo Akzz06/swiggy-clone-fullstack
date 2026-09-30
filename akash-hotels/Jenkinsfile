@@ -42,12 +42,12 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
+stage('Deploy') {
     steps {
         dir('akash-hotels') {
             sh '''
-                docker compose pull
-                docker compose up -d
+                docker-compose pull
+                docker-compose up -d
             '''
         }
     }
