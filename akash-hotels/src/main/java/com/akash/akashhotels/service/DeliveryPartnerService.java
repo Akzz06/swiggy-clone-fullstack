@@ -55,7 +55,7 @@ public class DeliveryPartnerService {
 
     public DeliveryPartnerResponse getPartnerById(Long id) {
         DeliveryPartner partner = deliveryPartnerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Delivery partner not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery partner not macha found with id: " + id));
         return mapToPartnerResponse(partner);
     }
 
