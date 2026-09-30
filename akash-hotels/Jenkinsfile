@@ -44,18 +44,12 @@ pipeline {
         }
         stage('Deploy') {
     steps {
-        sh '''
-            docker pull akazz0/akash-hotels:latest
-
-            docker stop akash-hotels-app || true
-            docker rm akash-hotels-app || true
-
-            docker run -d \
-              --name akash-hotels-app \
-              -p 8080:8080 \
-              --network akash-hotels_default \
-              akazz0/akash-hotels:latest
-        '''
+        dir('akash-hotels') {
+            sh '''
+                docker compose pull
+                docker compose up -d
+            '''
+        }
     }
 }
 

@@ -1,25 +1,32 @@
 services:
+
   postgres:
     image: postgres:16
     container_name: akash-hotels-postgres
+
     environment:
       POSTGRES_DB: akash_hotels
       POSTGRES_USER: akash_hotels_user
       POSTGRES_PASSWORD: Akash@123
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
   app:
-    image: akash-hotels:1.0
+    image: akazz0/akash-hotels:latest
     container_name: akash-hotels-app
+
     ports:
       - "8080:8080"
+
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/akash_hotels
       DB_USERNAME: akash_hotels_user
       DB_PASSWORD: Akash@123
+
     depends_on:
       - postgres
 
