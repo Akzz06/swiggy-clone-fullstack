@@ -1,42 +1,27 @@
-pipeline {
-    agent any
-
-    stages {
-
-        stage('Test Docker') {
-            steps {
-                sh 'docker --version'
-                sh 'docker ps'
-                sh 'docker-compose version'
-            }
+stage('Build Docker Image') {
+    steps {
+        dir('akash-hotels') {
+            sh 'docker build -t akazz0/akash-hotels:1.0 .'
         }
+    }
+}
 
-        stage('Build Application') {
-            steps {
-                dir('akash-hotels') {
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests'
-                }
-            }
-        }
+stage('Push Docker Image') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'dockerhub-credentials',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_TOKEN'
+            )
+        ]) {
+            sh '''
+                echo "$DOCKER_TOKEN" | docker login \
+                    -u "$DOCKER_USER" \
+                    --password-stdin
 
-        stage('Build Docker Image') {
-            steps {
-                dir('akash-hotels') {
-                    sh 'docker build -t akash-hotels:jenkins .'
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                dir('akash-hotels') {
-                    sh '''
-                        docker-compose down
-                        docker-compose up -d --build
-                    '''
-                }
-            }
+                docker push akazz0/akash-hotels:1.0
+            '''
         }
     }
 }
