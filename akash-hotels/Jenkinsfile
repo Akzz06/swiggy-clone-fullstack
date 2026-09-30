@@ -1,27 +1,47 @@
-stage('Build Docker Image') {
-    steps {
-        dir('akash-hotels') {
-            sh 'docker build -t akazz0/akash-hotels:1.0 .'
-        }
-    }
-}
+pipeline {
+    agent any
 
-stage('Push Docker Image') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'dockerhub-credentials',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_TOKEN'
-            )
-        ]) {
-            sh '''
-                echo "$DOCKER_TOKEN" | docker login \
-                    -u "$DOCKER_USER" \
-                    --password-stdin
+    stages {
 
-                docker push akazz0/akash-hotels:1.0
-            '''
+        stage('Test Docker') {
+            steps {
+                sh 'docker --version'
+                sh 'docker ps'
+            }
         }
+
+        stage('Build Application') {
+            steps {
+                dir('akash-hotels') {
+                    sh 'chmod +x mvnw'
+                    sh './mvnw clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('akash-hotels') {
+                    sh 'docker build -t akazz0/akash-hotels:latest .'
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push akazz0/akash-hotels:latest
+                        docker logout
+                    '''
+                }
+            }
+        }
+
     }
 }
